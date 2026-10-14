@@ -211,38 +211,34 @@
 
         let recognition;
         let isUserIntentToRecord = false;
+        let sessionTranscript = "";
 
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
             recognition.lang = 'es-SV';
-            recognition.continuous = true;
-            recognition.interimResults = true;
+            recognition.continuous = false; // Cambiado a false para procesar por bloques limpios y evitar el eco de bucle
+            recognition.interimResults = false;
 
             recognition.onstart = function() {
                 document.getElementById('recordBtn').classList.add('active');
-                document.getElementById('recordStatus').innerText = "Escuchando consulta en vivo...";
+                document.getElementById('recordStatus').innerText = "Escuchando...";
             };
 
             recognition.onresult = function(event) {
-                let currentTranscript = '';
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    currentTranscript += event.results[i][0].transcript;
-                }
-                const existingText = document.getElementById('clinicalInput').value;
-                if (event.results[event.results.length - 1].isFinal) {
-                    document.getElementById('clinicalInput').value = existingText + ' ' + currentTranscript;
-                }
+                const transcript = event.results[0][0].transcript;
+                sessionTranscript += (sessionTranscript ? " " : "") + transcript;
+                document.getElementById('clinicalInput').value = sessionTranscript;
             };
 
             recognition.onerror = function(event) {
-                console.log("Speech recognition error:", event.error);
+                console.log("Error:", event.error);
             };
 
             recognition.onend = function() {
                 if (isUserIntentToRecord) {
                     try {
-                        recognition.start();
+                        recognition.start(); // Auto-reinicia para mantener la escucha continua sin acumular basura
                     } catch (e) {
                         console.log("Restart:", e);
                     }
@@ -260,6 +256,7 @@
                 recognition.stop();
             } else {
                 isUserIntentToRecord = true;
+                sessionTranscript = document.getElementById('clinicalInput').value;
                 recognition.start();
             }
         }
@@ -284,10 +281,10 @@
                 hallazgos = "Deformidad anatómica palpable, eritema local y limitación funcional severa por dolor.";
                 diag = "S42.0 - Fractura de clavícula / Traumatismo no especificado";
                 receta = "1. Inmovilización con cabestrillo. 2. Dexketoprofeno 25mg VO c/8h. 3. Radiografía de urgencia.";
-            } else if (lower.includes('abdomen') || lower.includes('estómago') || lower.includes('dolor abdominal')) {
-                hallazgos = "Abdomen blando, depresible, no doloroso a la palpación superficial ni profunda, sin signos de irritación peritoneal.";
-                diag = "K52.9 - Gastroenteritis y colitis no especificadas";
-                receta = "1. Suero oral fraccionado. 2. Trimebutina 200mg VO c/8h.";
+            } else if (lower.includes('abdomen') || lower.includes('estómago') || lower.includes('dolor abdominal') || lower.includes('normohidratado') || lower.includes('consciente')) {
+                hallazgos = "Paciente consciente, orientado, normohidratado, abdomen blando, depresible, no doloroso a la palpación, sin signos de irritación peritoneal.";
+                diag = "K52.9 - Gastroenteritis y colitis no especificadas / Evaluación general";
+                receta = "1. Suero oral fraccionado. 2. Trimebutina 200mg VO c/8h. 3. Reposo relativo.";
             } else if (lower.includes('cabeza') || lower.includes('cefalea') || lower.includes('presión')) {
                 hallazgos = "Paciente consciente, orientado. PA: 130/85 mmHg. Exploración neurológica normal.";
                 diag = "G44.2 - Cefalea tensional / I10 - Hipertensión arterial esencial";
