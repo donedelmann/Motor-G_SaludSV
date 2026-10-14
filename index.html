@@ -165,7 +165,7 @@
 
     <div class="card">
         <h2 style="font-size: 14px; font-weight: bold; margin-bottom: 4px; color: #e5e7eb;">Dictado Clínico de Un Solo Toque</h2>
-        <p style="margin-bottom: 16px;">Presione el micrófono para iniciar consulta</p>
+        <p style="margin-bottom: 16px;">Presione el micrófono para dictar (se detiene solo al terminar)</p>
         
         <button id="recordBtn" class="mic-btn" onclick="toggleSpeechRecognition()">
             <svg style="width: 36px; height: 36px; color: white;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -176,7 +176,7 @@
         
         <div style="text-align: left; margin-top: 14px;">
             <label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Transcripción / Caso clínico:</label>
-            <textarea id="clinicalInput" rows="4" placeholder="Dicta la consulta completa..."></textarea>
+            <textarea id="clinicalInput" rows="4" placeholder="Dicta la consulta o escribe aquí..."></textarea>
             <button class="action-btn" onclick="processClinicalData()">Estructurar con Motor G</button>
             <button class="clear-btn" onclick="resetForm()">Nueva Consulta / Limpiar</button>
         </div>
@@ -222,53 +222,55 @@
         });
 
         let recognition;
-        let isRecording = false;
+        let isListening = false;
 
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
             recognition.lang = 'es-SV';
-            recognition.continuous = true;
-            recognition.interimResults = false; // Solo procesa resultados finales consolidados
+            recognition.continuous = false; // CLAVE: Evita el eco infinito y bucles de Android
+            recognition.interimResults = false;
 
             recognition.onstart = function() {
-                isRecording = true;
+                isListening = true;
                 document.getElementById('recordBtn').classList.add('active');
-                document.getElementById('recordStatus').innerText = "Escuchando consulta...";
+                document.getElementById('recordStatus').innerText = "Escuchando... hable ahora.";
             };
 
             recognition.onresult = function(event) {
-                // Reconstruir la transcripción completa desde cero en cada evento final
-                let fullText = "";
-                for (let i = 0; i < event.results.length; i++) {
-                    fullText += event.results[i][0].transcript + " ";
-                }
-                document.getElementById('clinicalInput').value = fullText.trim();
+                const spokenText = event.results[0][0].transcript;
+                const textBox = document.getElementById('clinicalInput');
+                // Asignamos directamente la frase limpia sin acumular basura previa
+                textBox.value = spokenText;
             };
 
             recognition.onerror = function(event) {
-                console.log("Error de reconocimiento:", event.error);
+                console.log("Error de voz:", event.error);
+                stopMicUI();
             };
 
             recognition.onend = function() {
                 stopMicUI();
-                processClinicalData();
+                processClinicalData(); // Procesa automáticamente al terminar de hablar
             };
         }
 
         function toggleSpeechRecognition() {
             if (!recognition) return;
-            if (isRecording) {
+            if (isListening) {
                 recognition.stop();
             } else {
-                // Al iniciar nuevo dictado, limpiamos para evitar arrastrar consultas anteriores
-                resetForm();
-                recognition.start();
+                resetForm(); // Limpia antes de empezar una nueva consulta
+                try {
+                    recognition.start();
+                } catch(e) {
+                    console.log("Start error:", e);
+                }
             }
         }
 
         function stopMicUI() {
-            isRecording = false;
+            isListening = false;
             document.getElementById('recordBtn').classList.remove('active');
             document.getElementById('recordStatus').innerText = "Toque para iniciar dictado";
         }
@@ -292,35 +294,27 @@
 
             const lower = val.toLowerCase();
 
-            // 1. TRAUMATOLOGÍA / HOMBRO / FRACTURA
-            if (lower.includes('hombro') || lower.includes('fractura') || lower.includes('caída') || lower.includes('golpe') || lower.includes('brazo')) {
-                hallazgos = "Deformidad anatómica palpable, eritema local y limitación funcional severa a la movilización.";
-                diag = "S42.0 - Fractura de clavícula / Traumatismo de miembro superior";
-                receta = "1. Inmovilización con cabestrillo. 2. Dexketoprofeno 25mg VO c/8h por 5 días. 3. Radiografía AP de urgencia.";
-
-            // 2. ABDOMEN / GASTROENTERITIS / EXAMEN NORMAL
-            } else if (lower.includes('abdomen') || lower.includes('estómago') || lower.includes('depresible') || lower.includes('palpación') || lower.includes('diarrea') || lower.includes('náusea')) {
-                hallazgos = "Abdomen blando, depresible, no doloroso a la palpación superficial ni profunda, sin signos de irritación peritoneal ni megalias.";
-                diag = "K52.9 - Gastroenteritis y colitis no especificadas / Exploración abdominal normal";
-                receta = "1. Suero de rehidratación oral fraccionado. 2. Trimebutina 200mg VO c/8h. 3. Dieta blanda por 72 horas.";
-
-            // 3. RESPIRATORIO / RINITIS / ASMA
-            } else if (lower.includes('tos') || lower.includes('pecho') || lower.includes('rinitis') || lower.includes('estornudo') || lower.includes('moco') || lower.includes('alergia')) {
-                hallazgos = "Mucosa nasal pálida y edematosa, campos pulmonares bien ventilados sin ruidos agregados.";
-                diag = "J30.4 - Rinitis alérgica / J20.9 - Bronquitis aguda no especificada";
-                receta = "1. Furoato de Mometasona spray nasal (2 aplic c/24h). 2. Levocetirizina 5mg VO c/24h por 10 días.";
-
-            // 4. CEFALEA / NEUROLOGÍA / HIPERTENSIÓN / PACIENTE CONSCIENTE
-            } else if (lower.includes('cabeza') || lower.includes('cefalea') || lower.includes('presión') || lower.includes('consciente') || lower.includes('esferas')) {
-                hallazgos = "Paciente consciente, orientado en tres esferas, normohidratado, sin dificultad respiratoria aguda, mucosas normales.";
-                diag = "G44.2 - Cefalea tensional / Z00.0 - Examen médico general";
-                receta = "1. Ibuprofeno 600mg VO c/8h por 3 días. 2. Control periódico de presión arterial y descanso adecuado.";
-
-            // 5. GENERAL
+            // Matriz clínica avanzada sin efecto ISSS (tratamientos reales y específicos)
+            if (lower.includes('hombro') || lower.includes('fractura') || lower.includes('caída') || lower.includes('golpe') || lower.includes('trauma')) {
+                hallazgos = "Deformidad anatómica evidente, eritema local, equimosis y limitación funcional severa por dolor agudo.";
+                diag = "S42.0 - Fractura de clavícula / S42.3 - Fractura de húmero";
+                receta = "1. Inmovilización rígida con cabestrillo ortopédico. 2. Dexketoprofeno 25mg VO c/8h por 5 días. 3. Tramadol 50mg VO c/12h PRN dolor severo. 4. Radiografía AP de control.";
+            } else if (lower.includes('abdomen') || lower.includes('estómago') || lower.includes('diarrea') || lower.includes('vómito') || lower.includes('dolor abdominal')) {
+                hallazgos = "Abdomen blando, depresible, doloroso a la palpación profunda en mesogastrio, peristaltismo activo aumentado, sin signos peritoneales.";
+                diag = "K52.9 - Gastroenteritis y colitis infecciosa no especificada";
+                receta = "1. Vida Suero Oral (1 sobre por cada evacuación diarreica). 2. Trimebutina con Simeticona 200mg VO c/8h por 5 días. 3. Dieta astringente estricta.";
+            } else if (lower.includes('tos') || lower.includes('garganta') || lower.includes('respirar') || lower.includes('gripe') || lower.includes('faringe')) {
+                hallazgos = "Orofaringe hiperémica, amígdalas hipertróficas sin exudado purulento. Murmullo vesicular conservado sin sibilancias.";
+                diag = "J02.9 - Faringitis aguda / J06.9 - Infección respiratoria alta";
+                receta = "1. Amoxicilina con Ácido Clavulánico 875/125mg VO c/12h por 7 días. 2. Ibuprofeno 600mg VO c/8h con alimentos. 3. Abundantes líquidos.";
+            } else if (lower.includes('cabeza') || lower.includes('cefalea') || lower.includes('presión') || lower.includes('mareo') || lower.includes('migraña')) {
+                hallazgos = "Paciente consciente, orientado en 3 esferas. Presión Arterial: 140/90 mmHg. Examen neurológico sin déficits focales.";
+                diag = "I10 - Hipertensión arterial esencial / G44.2 - Cefalea tensional";
+                receta = "1. Captopril 25mg SL PRN si PA > 150/90. 2. Naproxeno 500mg VO c/12h por 3 días. 3. Evaluación por medicina interna y bitácora tensional.";
             } else {
-                hallazgos = "Signos vitales dentro de parámetros normales. Sintomatología general referida sin datos de alarma inmediatos.";
-                diag = "R69 - Causas de morbilidad no especificadas / Evaluación general";
-                receta = "1. Paracetamol 500mg VO c/8h PRN molestia. 2. Reposo relativo por 48 horas. 3. Control en consulta si persisten síntomas.";
+                hallazgos = "Paciente íntegro, reactivo, normohidratado, cardiopulmonar sin alteraciones agudas evidentes.";
+                diag = "R69 - Consulta general de evaluación médica integral";
+                receta = "1. Celecoxib 200mg VO c/24h por 5 días. 2. Reposo relativo por 48 horas. 3. Cita abierta a urgencias si presenta datos de alarma.";
             }
 
             document.getElementById('outExploracion').innerText = hallazgos;
