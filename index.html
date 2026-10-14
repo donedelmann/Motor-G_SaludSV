@@ -228,7 +228,7 @@
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
             recognition.lang = 'es-SV';
-            recognition.continuous = false; // Evita bucles y eco en Android
+            recognition.continuous = false;
             recognition.interimResults = false;
 
             recognition.onstart = function() {
@@ -293,7 +293,7 @@
 
             const lower = val.toLowerCase();
 
-            // Matriz clínica con diagnósticos diferenciales avanzados (Cero ISSS)
+            // Matriz clínica con Etoricoxib asegurado para traumatología y cero paracetamol genérico
             if (lower.includes('hombro') || lower.includes('fractura') || lower.includes('caída') || lower.includes('golpe') || lower.includes('trauma')) {
                 hallazgos = "Dolor severo a la abducción activa, signo de Neer y Hawkins positivos, limitación mecánica y tumefacción local.";
                 diag = "S42.0 - Fractura de clavícula / M75.1 - Síndrome de manguito rotador / S43.4 - Esguince glenohumeral";
@@ -315,9 +315,9 @@
                 diag = "E11.9 - Diabetes mellitus tipo 2 sin complicaciones / R53 - Malestar y fatiga / E03.9 - Hipotiroidismo subclínico";
                 receta = "1. Perfil lipídico, HbA1c y glicemia en ayunas. 2. Metformina 850mg VO c/12h con alimentos. 3. Valoración por nutrición.";
             } else {
-                hallazgos = "Exploración física general sin datos de focalidad neurológica ni compromiso hemodinámico inmediato. Signos estables.";
-                diag = "R69 - Enfermedad no especificada / Z02.7 - Evaluación médica integral / M54.5 - Dolor musculoesquelético inespecífico";
-                receta = "1. Complejo B (Tiamina/Piridoxina/Cianocobalamina) 1 tableta VO c/24h. 2. Celecoxib 200mg VO c/24h por 5 días. 3. Cita abierta a urgencias si persisten síntomas.";
+                hallazgos = "Signos vitales estables, consciente, orientado, sin datos de respuesta inflamatoria sistémica ni focalidad neurológica.";
+                diag = "R69 - Trastorno sintomático no especificado / Z00.0 - Examen médico preventivo general";
+                receta = "1. Celecoxib 200mg VO c/24h por 5 días. 2. Complejo B 1 tableta VO c/24h por 30 días. 3. Reposo relativo por 48 horas y control médico evolutivo.";
             }
 
             document.getElementById('outExploracion').innerText = hallazgos;
