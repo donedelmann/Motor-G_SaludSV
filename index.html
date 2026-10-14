@@ -211,7 +211,6 @@
 
         let recognition;
         let isUserIntentToRecord = false;
-        let finalTranscript = '';
 
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -222,23 +221,22 @@
 
             recognition.onstart = function() {
                 document.getElementById('recordBtn').classList.add('active');
-                document.getElementById('recordStatus').innerText = "Escuchando consulta en vivo (Toque para finalizar)...";
+                document.getElementById('recordStatus').innerText = "Escuchando consulta en vivo...";
             };
 
             recognition.onresult = function(event) {
-                let interimTranscript = '';
+                let currentTranscript = '';
                 for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) {
-                        finalTranscript += event.results[i][0].transcript + ' ';
-                    } else {
-                        interimTranscript += event.results[i][0].transcript;
-                    }
+                    currentTranscript += event.results[i][0].transcript;
                 }
-                document.getElementById('clinicalInput').value = finalTranscript + interimTranscript;
+                const existingText = document.getElementById('clinicalInput').value;
+                if (event.results[event.results.length - 1].isFinal) {
+                    document.getElementById('clinicalInput').value = existingText + ' ' + currentTranscript;
+                }
             };
 
             recognition.onerror = function(event) {
-                console.log("Speech recognition status:", event.error);
+                console.log("Speech recognition error:", event.error);
             };
 
             recognition.onend = function() {
@@ -246,7 +244,7 @@
                     try {
                         recognition.start();
                     } catch (e) {
-                        console.log("Restart error:", e);
+                        console.log("Restart:", e);
                     }
                 } else {
                     stopMicUI();
@@ -262,7 +260,6 @@
                 recognition.stop();
             } else {
                 isUserIntentToRecord = true;
-                finalTranscript = document.getElementById('clinicalInput').value ? document.getElementById('clinicalInput').value + ' ' : '';
                 recognition.start();
             }
         }
@@ -283,41 +280,22 @@
 
             const lower = val.toLowerCase();
 
-            // 1. TRAUMATOLOGÍA / FRACTURAS / HOMBRO / ARTICULACIONES
-            if (lower.includes('hombro') || lower.includes('fractura') || lower.includes('caída') || lower.includes('golpe') || lower.includes('trauma') || lower.includes('brazo') || lower.includes('rodilla')) {
-                hallazgos = "Deformidad anatómica palpable, eritema local, equimosis y limitación funcional severa por dolor a la movilización activa y pasiva.";
-                diag = "S42.0 - Fractura de la clavícula / S42.3 - Fractura de la diáfisis del húmero / Traumatismo no especificado";
-                receta = "1. Inmovilización inmediata con cabestrillo o férula. 2. Dexketoprofeno 25mg VO c/8h por 5 días. 3. Tramadol 50mg VO c/12h PRN dolor severo. 4. Radiografía AP y lateral de urgencia.";
-            
-            // 2. RINITIS / ALERGIAS / CONGESTIÓN NASAL
-            } else if (lower.includes('rinitis') || lower.includes('estornudo') || lower.includes('alergia') || lower.includes('moco') || lower.includes('picazón') || lower.includes('congestión')) {
-                hallazgos = "Mucosa nasal pálida y edematosa, hipertrofia de cornetes inferiores, rinorrea hialina abundante sin signos de sobreinfección.";
-                diag = "J30.4 - Rinitis alérgica, no especificada";
-                receta = "1. Furoato de Mometasona spray nasal 2 atomizaciones en cada fosa nasal c/24h por 14 días. 2. Levocetirizina 5mg VO c/24h por la noche por 10 días.";
-
-            // 3. RESPIRATORIO / PULMONAR / BRONQUITIS
-            } else if (lower.includes('tos') || lower.includes('pecho') || lower.includes('respirar') || lower.includes('flema') || lower.includes('pulmón')) {
-                hallazgos = "Campos pulmonares con murmullo vesicular rudo, sibilancias espiratorias difusas y roncus bilaterales. Sin cianosis.";
-                diag = "J20.9 - Bronquitis aguda no especificada / J45 - Asma bronquial";
-                receta = "1. Salbutamol Inhalador 100mcg: 2 puffs c/6h por 5 días. 2. Prednisona 20mg VO c/24h por 3 días. 3. Acetilcisteína 600mg VO c/24h.";
-
-            // 4. DIGESTIVO / GASTROENTERITIS / ABDOMEN
-            } else if (lower.includes('estómago') || lower.includes('diarrea') || lower.includes('vomito') || lower.includes('vómito') || lower.includes('náusea') || lower.includes('acidez') || lower.includes('gastritis')) {
-                hallazgos = "Abdomen suave, depresible, ruidos hidroaéreos aumentados en frecuencia e intensidad, dolor a la palpación en epigastrio/mesogastrio.";
-                diag = "K52.9 - Gastroenteritis y colitis infecciosa / K29.7 - Gastritis no especificada";
-                receta = "1. Suero de Rehidratación Oral (SRO) 1 litro al día. 2. Ciprofloxacino 500mg VO c/12h por 5 días (si infeccioso). 3. Hioscina Compuesta VO c/8h PRN cólico.";
-
-            // 5. CEFALEA / NEUROLOGÍA / HIPERTENSIÓN
-            } else if (lower.includes('cabeza') || lower.includes('cefalea') || lower.includes('migraña') || lower.includes('presión') || lower.includes('mareo')) {
-                hallazgos = "Paciente consciente, orientado. Presión Arterial: 135/85 mmHg. Exploración neurológica básica normal, pares craneales conservados.";
+            if (lower.includes('hombro') || lower.includes('fractura') || lower.includes('caída') || lower.includes('golpe')) {
+                hallazgos = "Deformidad anatómica palpable, eritema local y limitación funcional severa por dolor.";
+                diag = "S42.0 - Fractura de clavícula / Traumatismo no especificado";
+                receta = "1. Inmovilización con cabestrillo. 2. Dexketoprofeno 25mg VO c/8h. 3. Radiografía de urgencia.";
+            } else if (lower.includes('abdomen') || lower.includes('estómago') || lower.includes('dolor abdominal')) {
+                hallazgos = "Abdomen blando, depresible, no doloroso a la palpación superficial ni profunda, sin signos de irritación peritoneal.";
+                diag = "K52.9 - Gastroenteritis y colitis no especificadas";
+                receta = "1. Suero oral fraccionado. 2. Trimebutina 200mg VO c/8h.";
+            } else if (lower.includes('cabeza') || lower.includes('cefalea') || lower.includes('presión')) {
+                hallazgos = "Paciente consciente, orientado. PA: 130/85 mmHg. Exploración neurológica normal.";
                 diag = "G44.2 - Cefalea tensional / I10 - Hipertensión arterial esencial";
-                receta = "1. Ibuprofeno 600mg + Cafeína VO c/8h por 3 días. 2. Control de bitácora de presión arterial por 7 días. 3. Reposo en ambiente oscuro.";
-
-            // 6. GENERAL / SÍNTOMAS MÚLTIPLES
+                receta = "1. Ibuprofeno 600mg VO c/8h. 2. Reposo relativo.";
             } else {
-                hallazgos = "Signos vitales estables. Se evalúa sintomatología sistémica referida por el paciente sin compromiso hemodinámico agudo.";
-                diag = "R69 - Causas de morbilidad desconocidas y no especificadas";
-                receta = "1. Paracetamol 500mg VO c/8h por 3 días. 2. Reposo médico por 48 horas. 3. Reevaluación en consulta si persisten las molestias.";
+                hallazgos = "Signos vitales estables. Se evalúa sintomatología referida sin compromiso agudo.";
+                diag = "R69 - Causas de morbilidad no especificadas";
+                receta = "1. Paracetamol 500mg VO c/8h. 2. Reposo por 48 horas.";
             }
 
             document.getElementById('outExploracion').innerText = hallazgos;
