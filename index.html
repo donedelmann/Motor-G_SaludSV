@@ -113,6 +113,17 @@
             font-size: 12px; 
             cursor: pointer; 
         }
+        .clear-btn {
+            margin-top: 6px;
+            width: 100%;
+            background: transparent;
+            color: #9ca3af;
+            border: 1px solid #374151;
+            padding: 6px;
+            border-radius: 6px;
+            font-size: 11px;
+            cursor: pointer;
+        }
         .results { 
             background: rgba(31, 41, 55, 0.9); 
             padding: 16px; 
@@ -165,8 +176,9 @@
         
         <div style="text-align: left; margin-top: 14px;">
             <label style="font-size: 11px; font-weight: bold; color: #9ca3af;">Transcripción / Caso clínico:</label>
-            <textarea id="clinicalInput" rows="4" placeholder="Dicta la consulta completa sin interrupciones..."></textarea>
+            <textarea id="clinicalInput" rows="4" placeholder="Dicta la consulta completa..."></textarea>
             <button class="action-btn" onclick="processClinicalData()">Estructurar con Motor G</button>
+            <button class="clear-btn" onclick="resetForm()">Nueva Consulta / Limpiar</button>
         </div>
     </div>
 
@@ -210,60 +222,63 @@
         });
 
         let recognition;
-        let isUserIntentToRecord = false;
-        let sessionTranscript = "";
+        let isRecording = false;
 
         if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             recognition = new SpeechRecognition();
             recognition.lang = 'es-SV';
-            recognition.continuous = false; // Cambiado a false para procesar por bloques limpios y evitar el eco de bucle
-            recognition.interimResults = false;
+            recognition.continuous = true;
+            recognition.interimResults = false; // Solo procesa resultados finales consolidados
 
             recognition.onstart = function() {
+                isRecording = true;
                 document.getElementById('recordBtn').classList.add('active');
-                document.getElementById('recordStatus').innerText = "Escuchando...";
+                document.getElementById('recordStatus').innerText = "Escuchando consulta...";
             };
 
             recognition.onresult = function(event) {
-                const transcript = event.results[0][0].transcript;
-                sessionTranscript += (sessionTranscript ? " " : "") + transcript;
-                document.getElementById('clinicalInput').value = sessionTranscript;
+                // Reconstruir la transcripción completa desde cero en cada evento final
+                let fullText = "";
+                for (let i = 0; i < event.results.length; i++) {
+                    fullText += event.results[i][0].transcript + " ";
+                }
+                document.getElementById('clinicalInput').value = fullText.trim();
             };
 
             recognition.onerror = function(event) {
-                console.log("Error:", event.error);
+                console.log("Error de reconocimiento:", event.error);
             };
 
             recognition.onend = function() {
-                if (isUserIntentToRecord) {
-                    try {
-                        recognition.start(); // Auto-reinicia para mantener la escucha continua sin acumular basura
-                    } catch (e) {
-                        console.log("Restart:", e);
-                    }
-                } else {
-                    stopMicUI();
-                    processClinicalData();
-                }
+                stopMicUI();
+                processClinicalData();
             };
         }
 
         function toggleSpeechRecognition() {
             if (!recognition) return;
-            if (isUserIntentToRecord) {
-                isUserIntentToRecord = false;
+            if (isRecording) {
                 recognition.stop();
             } else {
-                isUserIntentToRecord = true;
-                sessionTranscript = document.getElementById('clinicalInput').value;
+                // Al iniciar nuevo dictado, limpiamos para evitar arrastrar consultas anteriores
+                resetForm();
                 recognition.start();
             }
         }
 
         function stopMicUI() {
+            isRecording = false;
             document.getElementById('recordBtn').classList.remove('active');
             document.getElementById('recordStatus').innerText = "Toque para iniciar dictado";
+        }
+
+        function resetForm() {
+            document.getElementById('clinicalInput').value = "";
+            document.getElementById('outMotivo').innerText = "-";
+            document.getElementById('outExploracion').innerText = "-";
+            document.getElementById('outDiagnostico').innerText = "-";
+            document.getElementById('outReceta').innerText = "-";
         }
 
         function processClinicalData() {
@@ -277,22 +292,35 @@
 
             const lower = val.toLowerCase();
 
-            if (lower.includes('hombro') || lower.includes('fractura') || lower.includes('caída') || lower.includes('golpe')) {
-                hallazgos = "Deformidad anatómica palpable, eritema local y limitación funcional severa por dolor.";
-                diag = "S42.0 - Fractura de clavícula / Traumatismo no especificado";
-                receta = "1. Inmovilización con cabestrillo. 2. Dexketoprofeno 25mg VO c/8h. 3. Radiografía de urgencia.";
-            } else if (lower.includes('abdomen') || lower.includes('estómago') || lower.includes('dolor abdominal') || lower.includes('normohidratado') || lower.includes('consciente')) {
-                hallazgos = "Paciente consciente, orientado, normohidratado, abdomen blando, depresible, no doloroso a la palpación, sin signos de irritación peritoneal.";
-                diag = "K52.9 - Gastroenteritis y colitis no especificadas / Evaluación general";
-                receta = "1. Suero oral fraccionado. 2. Trimebutina 200mg VO c/8h. 3. Reposo relativo.";
-            } else if (lower.includes('cabeza') || lower.includes('cefalea') || lower.includes('presión')) {
-                hallazgos = "Paciente consciente, orientado. PA: 130/85 mmHg. Exploración neurológica normal.";
-                diag = "G44.2 - Cefalea tensional / I10 - Hipertensión arterial esencial";
-                receta = "1. Ibuprofeno 600mg VO c/8h. 2. Reposo relativo.";
+            // 1. TRAUMATOLOGÍA / HOMBRO / FRACTURA
+            if (lower.includes('hombro') || lower.includes('fractura') || lower.includes('caída') || lower.includes('golpe') || lower.includes('brazo')) {
+                hallazgos = "Deformidad anatómica palpable, eritema local y limitación funcional severa a la movilización.";
+                diag = "S42.0 - Fractura de clavícula / Traumatismo de miembro superior";
+                receta = "1. Inmovilización con cabestrillo. 2. Dexketoprofeno 25mg VO c/8h por 5 días. 3. Radiografía AP de urgencia.";
+
+            // 2. ABDOMEN / GASTROENTERITIS / EXAMEN NORMAL
+            } else if (lower.includes('abdomen') || lower.includes('estómago') || lower.includes('depresible') || lower.includes('palpación') || lower.includes('diarrea') || lower.includes('náusea')) {
+                hallazgos = "Abdomen blando, depresible, no doloroso a la palpación superficial ni profunda, sin signos de irritación peritoneal ni megalias.";
+                diag = "K52.9 - Gastroenteritis y colitis no especificadas / Exploración abdominal normal";
+                receta = "1. Suero de rehidratación oral fraccionado. 2. Trimebutina 200mg VO c/8h. 3. Dieta blanda por 72 horas.";
+
+            // 3. RESPIRATORIO / RINITIS / ASMA
+            } else if (lower.includes('tos') || lower.includes('pecho') || lower.includes('rinitis') || lower.includes('estornudo') || lower.includes('moco') || lower.includes('alergia')) {
+                hallazgos = "Mucosa nasal pálida y edematosa, campos pulmonares bien ventilados sin ruidos agregados.";
+                diag = "J30.4 - Rinitis alérgica / J20.9 - Bronquitis aguda no especificada";
+                receta = "1. Furoato de Mometasona spray nasal (2 aplic c/24h). 2. Levocetirizina 5mg VO c/24h por 10 días.";
+
+            // 4. CEFALEA / NEUROLOGÍA / HIPERTENSIÓN / PACIENTE CONSCIENTE
+            } else if (lower.includes('cabeza') || lower.includes('cefalea') || lower.includes('presión') || lower.includes('consciente') || lower.includes('esferas')) {
+                hallazgos = "Paciente consciente, orientado en tres esferas, normohidratado, sin dificultad respiratoria aguda, mucosas normales.";
+                diag = "G44.2 - Cefalea tensional / Z00.0 - Examen médico general";
+                receta = "1. Ibuprofeno 600mg VO c/8h por 3 días. 2. Control periódico de presión arterial y descanso adecuado.";
+
+            // 5. GENERAL
             } else {
-                hallazgos = "Signos vitales estables. Se evalúa sintomatología referida sin compromiso agudo.";
-                diag = "R69 - Causas de morbilidad no especificadas";
-                receta = "1. Paracetamol 500mg VO c/8h. 2. Reposo por 48 horas.";
+                hallazgos = "Signos vitales dentro de parámetros normales. Sintomatología general referida sin datos de alarma inmediatos.";
+                diag = "R69 - Causas de morbilidad no especificadas / Evaluación general";
+                receta = "1. Paracetamol 500mg VO c/8h PRN molestia. 2. Reposo relativo por 48 horas. 3. Control en consulta si persisten síntomas.";
             }
 
             document.getElementById('outExploracion').innerText = hallazgos;
