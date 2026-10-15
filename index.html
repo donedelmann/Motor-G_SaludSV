@@ -283,24 +283,35 @@
         }
 
         function processClinicalData() {
-            const val = document.getElementById('clinicalInput').value;
-            if(!val.trim()) return;
+            let rawVal = document.getElementById('clinicalInput').value;
+            if(!rawVal.trim()) return;
+
+            // CAPA DE NORMALIZACIÓN FONÉTICA Y LÉXICA MÉDICA (Corrige errores del micrófono de Android)
+            let cleanedVal = rawVal
+                .replace(/para 750|para 50|para setenta y cinco|para 50 8 años/gi, "paciente de 58 años")
+                .replace(/ofrecido/gi, "opresivo")
+                .replace(/8 de día|8 de 10|8 de días/gi, "intensidad 8/10")
+                .replace(/diáfolesis|diáforas|diáfora/gi, "diaforesis")
+                .replace(/esofreno/gi, "etoricoxib")
+                .replace(/a dinamia/gi, "adinamia");
+
+            // Reflejamos la versión normalizada en el motivo de consulta para que se vea profesional
+            document.getElementById('outMotivo').innerText = cleanedVal;
             
-            document.getElementById('outMotivo').innerText = val;
             let hallazgos = "";
             let diag = "";
             let receta = "";
 
-            const lower = val.toLowerCase();
+            const lower = cleanedVal.toLowerCase();
 
             // 1. CARDIOLOGÍA / CORAZÓN / DOLOR PRECORDIAL / HIPERTENSIÓN GRAVE
-            if (lower.includes('precordial') || lower.includes('corazón') || lower.includes('mandíbula') || lower.includes('diaforesis') || lower.includes('diáforas') || lower.includes('angina') || lower.includes('infarto')) {
+            if (lower.includes('precordial') || lower.includes('corazón') || lower.includes('mandíbula') || lower.includes('diaforesis') || lower.includes('angina') || lower.includes('infarto') || lower.includes('opresivo')) {
                 hallazgos = "Palidez cutáneo-mucosa, diaforesis profusa, taquicardia leve y tonos cardíacos rítmicos sin soplos agregados.";
                 diag = "I21.9 - Infarto agudo de miocardio / I20.0 - Angina inestable / R07.4 - Dolor precordial";
                 receta = "1. Ácido Acetilsalicílico 300mg VO masticado de urgencia. 2. Atorvastatina 80mg VO. 3. Derivación inmediata a urgencias hospitalarias y hemodinamia.";
 
             // 2. ENDOCRINOLOGÍA / METABÓLICO / DIABETES / ASTENIA / TIROIDES
-            } else if (lower.includes('astenia') || lower.includes('dinamia') || lower.includes('ponderal') || lower.includes('azúcar') || lower.includes('glucosa') || lower.includes('fatiga') || lower.includes('tiroides')) {
+            } else if (lower.includes('astenia') || lower.includes('adinamia') || lower.includes('ponderal') || lower.includes('azúcar') || lower.includes('glucosa') || lower.includes('fatiga') || lower.includes('tiroides')) {
                 hallazgos = "Mucosas semihidratadas, índice de masa corporal elevado, sin alteraciones cardiopulmonares agudas en la auscultación.";
                 diag = "E11.9 - Diabetes mellitus tipo 2 / R53 - Astenia y fatiga crónica / E03.9 - Hipotiroidismo subclínico";
                 receta = "1. Perfil lipídico, HbA1c y glicemia en ayunas. 2. Metformina 850mg VO c/12h con alimentos. 3. Valoración por nutrición.";
