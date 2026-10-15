@@ -293,30 +293,94 @@
 
             const lower = val.toLowerCase();
 
-            // Matriz clínica con prioridad estricta por especialidad
-            if (lower.includes('astenia') || lower.includes('dinamia') || lower.includes('ponderal') || lower.includes('azúcar') || lower.includes('glucosa') || lower.includes('fatiga')) {
+            // 1. CARDIOLOGÍA / CORAZÓN / DOLOR PRECORDIAL / HIPERTENSIÓN GRAVE
+            if (lower.includes('precordial') || lower.includes('corazón') || lower.includes('mandíbula') || lower.includes('diaforesis') || lower.includes('diáforas') || lower.includes('angina') || lower.includes('infarto')) {
+                hallazgos = "Palidez cutáneo-mucosa, diaforesis profusa, taquicardia leve y tonos cardíacos rítmicos sin soplos agregados.";
+                diag = "I21.9 - Infarto agudo de miocardio / I20.0 - Angina inestable / R07.4 - Dolor precordial";
+                receta = "1. Ácido Acetilsalicílico 300mg VO masticado de urgencia. 2. Atorvastatina 80mg VO. 3. Derivación inmediata a urgencias hospitalarias y hemodinamia.";
+
+            // 2. ENDOCRINOLOGÍA / METABÓLICO / DIABETES / ASTENIA / TIROIDES
+            } else if (lower.includes('astenia') || lower.includes('dinamia') || lower.includes('ponderal') || lower.includes('azúcar') || lower.includes('glucosa') || lower.includes('fatiga') || lower.includes('tiroides')) {
                 hallazgos = "Mucosas semihidratadas, índice de masa corporal elevado, sin alteraciones cardiopulmonares agudas en la auscultación.";
                 diag = "E11.9 - Diabetes mellitus tipo 2 / R53 - Astenia y fatiga crónica / E03.9 - Hipotiroidismo subclínico";
                 receta = "1. Perfil lipídico, HbA1c y glicemia en ayunas. 2. Metformina 850mg VO c/12h con alimentos. 3. Valoración por nutrición.";
-            } else if (lower.includes('hombro') || lower.includes('fractura') || lower.includes('caída') || lower.includes('golpe') || lower.includes('trauma')) {
+
+            // 3. NEFROLOGÍA / URINARIO / CÓLICO NEFRÍTICO / ITU
+            } else if (lower.includes('lumbar') || lower.includes('polaquiuria') || lower.includes('disuria') || lower.includes('hematuria') || lower.includes('orina') || lower.includes('riñón')) {
+                hallazgos = "Puño percusión renal positiva, puntos ureterales dolorosos a la palpación profunda.";
+                diag = "N23 - Cólico nefrítico / N39.0 - Infección de vías urinarias / N20.1 - Cálculo ureteral";
+                receta = "1. Ketorolaco 30mg IM/IV stat. 2. Ciprofloxacino 500mg VO c/12h por 7 días. 3. Ultrasonido renal y de vías urinarias.";
+
+            // 4. DERMATOLOGÍA / ALERGIA / URTICARIA
+            } else if (lower.includes('habones') || lower.includes('urticaria') || lower.includes('erupción') || lower.includes('mariscos') || lower.includes('alergia') || lower.includes('pellejo') || lower.includes('piel')) {
+                hallazgos = "Placas eritematosas pruriginosas generalizadas (urticaria), edema palpebral leve, sin estridor laringeo.";
+                diag = "L50.9 - Urticaria no especificada / T78.4 - Alergia alimentaria / T78.3 - Edema angioneurótico";
+                receta = "1. Difenhidramina 50mg IM stat. 2. Dexametasona 8mg IM dosis única. 3. Cetirizina 10mg VO c/24h por 5 días.";
+
+            // 5. PSIQUIATRÍA / ANSIEDAD / PÁNICO / CRISIS
+            } else if (lower.includes('muerte') || lower.includes('palpitaciones') || lower.includes('hiperventilación') || lower.includes('parestesias') || lower.includes('pánico') || lower.includes('ansiedad')) {
+                hallazgos = "Taquipnea superficial, taquicardia sinusal reactiva, temblor fino distal en manos, conciencia lúcida y orientada.";
+                diag = "F41.0 - Trastorno de pánico / F41.1 - Trastorno de ansiedad generalizada / R45.0 - Crisis de angustia";
+                receta = "1. Contención verbal y manejo de respiración guiada. 2. Clonazepam 0.5mg VO sublingual si persiste la crisis. 3. Referencia a psicología.";
+
+            // 6. REUMATOLOGÍA / GOTA / ARTRITIS
+            } else if (lower.includes('metatarsofalángica') || lower.includes('podagra') || lower.includes('gota') || lower.includes('pie') || lower.includes('articulación') || lower.includes('artritis')) {
+                hallazgos = "Hiperemia marcada, aumento de volumen, calor local y dolor exquisito al roce en articulación afectada.";
+                diag = "M10.9 - Gota aguda / M13.1 - Monoartritis no especificada / M19.9 - Artrosis";
+                receta = "1. Colchicina 1mg VO inicial seguida de 0.5mg a la hora. 2. Indometacina 50mg VO c/8h con alimentos. 3. Ácido úrico en sangre.";
+
+            // 7. TRAUMATOLOGÍA / HOMBRO / FRACTURA / ESGUINCE
+            } else if (lower.includes('hombro') || lower.includes('fractura') || lower.includes('caída') || lower.includes('golpe') || lower.includes('trauma') || lower.includes('clavicular') || lower.includes('brazo')) {
                 hallazgos = "Dolor severo a la abducción activa, signo de Neer y Hawkins positivos, limitación mecánica y tumefacción local.";
                 diag = "S42.0 - Fractura de clavícula / M75.1 - Síndrome de manguito rotador / S43.4 - Esguince glenohumeral";
                 receta = "1. Inmovilización relativa con cabestrillo. 2. Etoricoxib 90mg VO c/24h por 7 días. 3. Derivación a traumatología para estudio de imagen.";
-            } else if (lower.includes('abdomen') || lower.includes('estómago') || lower.includes('diarrea') || lower.includes('vómito') || lower.includes('dolor abdominal')) {
+
+            // 8. GASTROENTEROLOGÍA / ABDOMEN / APENDICITIS / COLITIS
+            } else if (lower.includes('abdomen') || lower.includes('estómago') || lower.includes('diarrea') || lower.includes('vómito') || lower.includes('dolor abdominal') || lower.includes('gastritis')) {
                 hallazgos = "Dolor a la palpación profunda en fosa ilíaca derecha, signo de McBurney positivo o rebote leve, ruidos hidroaéreos disminuidos.";
-                diag = "K35.8 - Apendicitis aguda presuntiva / K52.9 - Gastroenteritis infecciosa / K58.0 - Intestino irritable";
+                diag = "K35.8 - Apendicitis aguda presuntiva / K52.9 - Gastroenteritis infecciosa / K29.7 - Gastritis no especificada";
                 receta = "1. Ayuno relativo y valoración quirúrgica urgente. 2. Butilhioscina con Metamizol 10/250mg VO c/8h. 3. Hemograma y ultrasonido abdominal.";
-            } else if (lower.includes('tos') || lower.includes('garganta') || lower.includes('respirar') || lower.includes('gripe') || lower.includes('pulmón')) {
+
+            // 9. NEUMOLOGÍA / RESPIRATORIO / NEUMONÍA / BRONQUITIS / TOS
+            } else if (lower.includes('tos') || lower.includes('garganta') || lower.includes('respirar') || lower.includes('gripe') || lower.includes('pulmón') || lower.includes('bronquitis')) {
                 hallazgos = "Estertores crepitantes en base pulmonar derecha, matidez a la percusión y disminución del murmullo vesicular focalizado.";
                 diag = "J18.9 - Neumonía adquirida en la comunidad / J20.9 - Bronquitis aguda / J02.9 - Faringoamigdalitis aguda";
                 receta = "1. Levofloxacino 500mg VO c/24h por 7 días. 2. Ibuprofeno 600mg VO c/8h con alimentos. 3. Radiografía de tórax PA y lateral.";
-            } else if (lower.includes('cabeza') || lower.includes('cefalea') || lower.includes('presión') || lower.includes('mareo') || lower.includes('migraña')) {
+
+            // 10. NEUROLOGÍA / CEFALEA / MIGRAÑA / VÉRTIGO
+            } else if (lower.includes('cabeza') || lower.includes('cefalea') || lower.includes('presión') || lower.includes('mareo') || lower.includes('migraña') || lower.includes('vertigo')) {
                 hallazgos = "Cefalea pulsátil hemicraneal con fotofobia y fonofobia leve, sin signos meníngeos. PA: 145/95 mmHg.";
-                diag = "G43.9 - Migraña sin aura / G44.2 - Cefalea tensional crónica / I10 - Hipertensión arterial esencial";
-                receta = "1. Sumatriptán 50mg VO ante cuadro agudo. 2. Naproxeno sódico 550mg VO c/12h. 3. Bitácora tensional y reposo en estancia oscura.";
+                diag = "G43.9 - Migraña sin aura / G44.2 - Cefalea tensional crónica / H81.1 - Vértigo posicional paroxístico benigno";
+                receta = "1. Sumatriptán 50mg VO ante cuadro agudo. 2. Naproxeno sódico 550mg VO c/12h. 3. Dimenhidrinato 50mg VO c/8h si hay mareo.";
+
+            // 11. OTORRINOLARINGOLOGÍA / RINITIS / OTITIS
+            } else if (lower.includes('oído') || lower.includes('nariz') || lower.includes('rinitis') || lower.includes('estornudo') || lower.includes('moco') || lower.includes('otitis')) {
+                hallazgos = "Mucosa nasal hiperémica y edematosa, membrana timpánica derecha opaca e hiperémica con abombamiento leve.";
+                diag = "H66.9 - Otitis media aguda / J30.4 - Rinitis alérgica / J01.9 - Sinusitis aguda";
+                receta = "1. Amoxicilina con Ácido Clavulánico 875/125mg VO c/12h por 7 días. 2. Gotas óticas de Ciprofloxacino/Dexametasona. 3. Analgésico de soporte.";
+
+            // 12. GINECOLOGÍA / OBSTETRICIA / ABDOMEN INFERIOR
+            } else if (lower.includes('regla') || lower.includes('menstruación') || lower.includes('pélvico') || lower.includes('útero') || lower.includes('embarazo') || lower.includes('amenorrea')) {
+                hallazgos = "Dolor a la palpación en hipogastrio sin signos de irritación peritoneal, anexos libres y no dolorosos.";
+                diag = "N94.6 - Dismenorrea primaria / N73.9 - Enfermedad inflamatoria pélvica / Z32.1 - Embarazo confirmado";
+                receta = "1. Meclofenamato sódico 100mg VO c/8h durante periodo doloroso. 2. Aplicación de calor local. 3. Ultrasonido pélvico de control.";
+
+            // 13. INFECTOLOGÍA / FIEBRE / DENGUE / ZIKA
+            } else if (lower.includes('fiebre') || lower.includes('escalofríos') || lower.includes('artralgias') || lower.includes('mialgias') || lower.includes('dengue') || lower.includes('chikungunya')) {
+                hallazgos = "Temperatura axilar 39°C, exantema morbiliforme generalizado, mialgias generalizadas y prueba del lazo positiva.";
+                diag = "A90 - Dengue sin signos de alarma / B34.9 - Infección viral no especificada / A92.0 - Fiebre de chikungunya";
+                receta = "1. Hidratación oral abundante (electrolitos orales). 2. Paracetamol 500mg VO c/6h (estricto control sin AINEs). 3. Hemograma seriado de control.";
+
+            // 14. OFTALMOLOGÍA / CONJUNTIVITIS / OJO ROJO
+            } else if (lower.includes('ojo') || lower.includes('visión') || lower.includes('conjuntivitis') || lower.includes('lagañas') || lower.includes('lagrimeo')) {
+                hallazgos = "Hiperemia conjuntival bilateral, secreción purulente moderada, córnea transparente sin lesiones teñidas con fluoresceína.";
+                diag = "H10.9 - Conjuntivitis aguda / H16.9 - Queratitis no especificada / H10.0 - Blefaroconjuntivitis";
+                receta = "1. Gotas oftalmológicas de Tobramicina con Dexametasona (1 gota c/4h por 7 días). 2. Aseo palpebral con solución salina.";
+
+            // 15. CASO GENERAL AMPLIADO
             } else {
-                hallazgos = "Signos vitales estables, consciente, orientado, sin datos de respuesta inflamatoria sistémica ni focalidad neurológica.";
-                diag = "R69 - Trastorno sintomático no especificado / Z00.0 - Examen médico preventivo general";
+                hallazgos = "Signos vitales estables, consciente, orientado en tres esferas, sin datos de respuesta inflamatoria sistémica ni focalidad neurológica.";
+                diag = "R69 - Trastorno sintomático no especificado / Z00.0 - Examen médico preventivo general / M54.5 - Dolor musculoesquelético inespecífico";
                 receta = "1. Celecoxib 200mg VO c/24h por 5 días. 2. Complejo B 1 tableta VO c/24h por 30 días. 3. Reposo relativo por 48 horas y control médico evolutivo.";
             }
 
