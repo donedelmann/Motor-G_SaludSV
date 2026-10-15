@@ -293,8 +293,12 @@
 
             const lower = val.toLowerCase();
 
-            // Matriz clínica con Etoricoxib asegurado para traumatología y cero paracetamol genérico
-            if (lower.includes('hombro') || lower.includes('fractura') || lower.includes('caída') || lower.includes('golpe') || lower.includes('trauma')) {
+            // Matriz clínica con prioridad estricta por especialidad
+            if (lower.includes('astenia') || lower.includes('dinamia') || lower.includes('ponderal') || lower.includes('azúcar') || lower.includes('glucosa') || lower.includes('fatiga')) {
+                hallazgos = "Mucosas semihidratadas, índice de masa corporal elevado, sin alteraciones cardiopulmonares agudas en la auscultación.";
+                diag = "E11.9 - Diabetes mellitus tipo 2 / R53 - Astenia y fatiga crónica / E03.9 - Hipotiroidismo subclínico";
+                receta = "1. Perfil lipídico, HbA1c y glicemia en ayunas. 2. Metformina 850mg VO c/12h con alimentos. 3. Valoración por nutrición.";
+            } else if (lower.includes('hombro') || lower.includes('fractura') || lower.includes('caída') || lower.includes('golpe') || lower.includes('trauma')) {
                 hallazgos = "Dolor severo a la abducción activa, signo de Neer y Hawkins positivos, limitación mecánica y tumefacción local.";
                 diag = "S42.0 - Fractura de clavícula / M75.1 - Síndrome de manguito rotador / S43.4 - Esguince glenohumeral";
                 receta = "1. Inmovilización relativa con cabestrillo. 2. Etoricoxib 90mg VO c/24h por 7 días. 3. Derivación a traumatología para estudio de imagen.";
@@ -310,10 +314,6 @@
                 hallazgos = "Cefalea pulsátil hemicraneal con fotofobia y fonofobia leve, sin signos meníngeos. PA: 145/95 mmHg.";
                 diag = "G43.9 - Migraña sin aura / G44.2 - Cefalea tensional crónica / I10 - Hipertensión arterial esencial";
                 receta = "1. Sumatriptán 50mg VO ante cuadro agudo. 2. Naproxeno sódico 550mg VO c/12h. 3. Bitácora tensional y reposo en estancia oscura.";
-            } else if (lower.includes('azúcar') || lower.includes('glucosa') || lower.includes('cansancio') || lower.includes('fatiga')) {
-                hallazgos = "Mucosas semihidratadas, índice de masa corporal elevado, sin alteraciones cardiopulmonares agudas en la auscultación.";
-                diag = "E11.9 - Diabetes mellitus tipo 2 sin complicaciones / R53 - Malestar y fatiga / E03.9 - Hipotiroidismo subclínico";
-                receta = "1. Perfil lipídico, HbA1c y glicemia en ayunas. 2. Metformina 850mg VO c/12h con alimentos. 3. Valoración por nutrición.";
             } else {
                 hallazgos = "Signos vitales estables, consciente, orientado, sin datos de respuesta inflamatoria sistémica ni focalidad neurológica.";
                 diag = "R69 - Trastorno sintomático no especificado / Z00.0 - Examen médico preventivo general";
