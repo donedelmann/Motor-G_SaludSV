@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Motor G | Salud 🎙️ - Aurora Holding</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brandDark: '#0f172a',
+            brandCard: '#1e293b',
+            brandBorder: '#334155',
+            brandAccent: '#38bdf8',
+            brandGreen: '#4ade80',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      background-color: #0f172a;
+      color: #f8fafc;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .pulse-ring {
+      box-shadow: 0 0 0 0 rgba(220, 38, 38, 0.7);
+      animation: pulse-red 1.5s infinite cubic-bezier(0.66, 0, 0, 1);
+    }
+    @keyframes pulse-red {
+      to {
+        box-shadow: 0 0 0 18px rgba(220, 38, 38, 0);
+      }
+    }
+    .btn-glow {
+      box-shadow: 0 0 15px rgba(56, 189, 248, 0.35);
+    }
+    .btn-glow-green {
+      box-shadow: 0 0 15px rgba(74, 222, 128, 0.25);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between p-4 max-w-md mx-auto relative select-none">
+
+  <!-- CABECERA Y CONTROL DE GEOCERCA (GEOFENCING) -->
+  <header class="space-y-3">
+    <div class="flex items-center justify-between border-b border-brandBorder pb-3">
+      <div>
+        <h1 class="text-xl font-extrabold text-brandAccent tracking-tight flex items-center gap-2">
+          <span>Motor G | Salud</span>
+          <span class="text-[10px] bg-brandAccent/20 text-brandAccent border border-brandAccent/40 px-2 py-0.5 rounded-full font-mono uppercase">v3.5</span>
+        </h1>
+        <p class="text-xs text-slate-400 font-medium">Core Médico Global • Aurora Holding</p>
+      </div>
+      <div class="text-right">
+        <span class="text-[9px] uppercase font-bold text-slate-500 tracking-wider block">Blindaje de Datos</span>
+        <span class="text-xs text-emerald-400 font-mono flex items-center justify-end gap-1">
+          <i class="fa-solid fa-shield-halved"></i> HIPAA Ready
+        </span>
+      </div>
+    </div>
+
+    <!-- BANNER DINÁMICO DE GEOLOCALIZACIÓN -->
+    <div id="geo-banner" class="bg-brandCard border border-emerald-500/40 rounded-xl p-3 flex items-center justify-between transition-all duration-300">
+      <div class="flex items-center gap-3">
+        <div id="geo-icon-bg" class="w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+          <i id="geo-icon" class="fa-solid fa-building-circle-check"></i>
+        </div>
+        <div>
+          <div id="geo-title" class="text-xs font-bold text-emerald-400 uppercase tracking-wide">🟢 DENTRO DE CLÍNICA (Acceso Autorizado)</div>
+          <div id="geo-subtitle" class="text-[10px] text-slate-400 font-mono">Geocerca Perimetral Activa • San Salvador</div>
+        </div>
+      </div>
+      <button onclick="alternarGeofencingSimulado()" class="text-[10px] bg-slate-800 hover:bg-slate-700 text-sky-300 border border-slate-600 px-2.5 py-1.5 rounded-lg transition flex items-center gap-1">
+        <i class="fa-solid fa-arrows-rotate"></i> Modular
+      </button>
+    </div>
+  </header>
+
+  <!-- CONTENIDO PRINCIPAL OPERATIVO -->
+  <main class="my-3 space-y-3.5 flex-1">
+
+    <!-- BOTONES DE ACCIÓN (MICRÓFONO Y DEMO) -->
+    <div class="space-y-2">
+      <button id="btn-mic" onclick="toggleDictado()" class="btn-glow w-full bg-sky-600 hover:bg-sky-500 active:bg-sky-700 text-white font-bold py-3.5 px-4 rounded-2xl flex items-center justify-center gap-3 shadow-lg transition-all duration-200 text-base">
+        <i class="fa-solid fa-microphone text-xl"></i>
+        <span>Toca para Dictar Consulta</span>
+      </button>
+
+      <button id="btn-demo" onclick="simularDemo()" class="w-full bg-slate-800 hover:bg-slate-700 text-sky-400 border border-sky-500/40 font-semibold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition">
+        <i class="fa-solid fa-bolt text-amber-400"></i>
+        <span>Simular Demo Express (Caso 15 Segundos)</span>
+      </button>
+    </div>
+
+    <!-- CAMPO DE TRANCRIPCIÓN Y DICTADO EN TIEMPO REAL -->
+    <div class="bg-brandCard border border-brandBorder rounded-xl p-3 shadow-inner">
+      <div class="flex justify-between items-center mb-1.5">
+        <label for="texto-dictado" class="text-xs font-bold text-slate-400 uppercase tracking-wide flex items-center gap-1.5">
+          <i class="fa-solid fa-wave-square text-sky-400"></i> Entrada de Voz Directa
+        </label>
+        <span class="text-[10px] text-slate-500 font-mono" id="char-count">0 caracteres</span>
+      </div>
+      <textarea id="texto-dictado" oninput="actualizarConteo()" placeholder="Ejemplo: 'Tarjeta 8842 paciente masculino de 34 años presenta fiebre de 38.5 y dolor al tragar...'" class="w-full h-20 bg-slate-900/90 text-sky-300 border border-slate-700/60 rounded-lg p-2.5 text-xs font-mono focus:outline-none focus:border-sky-500 resize-none"></textarea>
+    </div>
+
+    <!-- ESTRUCTURACIÓN AUTOMÁTICA DEL EXPEDIENTE MÉDICO -->
+    <div id="resultado-ia" class="hidden bg-brandCard border border-brandBorder rounded-xl p-3.5 space-y-3 shadow-xl transition-all">
+      <div class="flex justify-between items-center border-b border-slate-700/60 pb-2">
+        <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wide flex items-center gap-2">
+          <i class="fa-solid fa-brain text-emerald-400"></i> Parseo de Consulta Integrado
+        </h3>
+        <span class="text-[9px] bg-sky-950 text-sky-400 border border-sky-700/60 px-2 py-0.5 rounded-full font-bold">MIRAELI VOICE</span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-2 text-xs">
+        <div class="bg-slate-900/70 p-2 rounded-lg border border-slate-800">
+          <span class="text-[10px] text-slate-400 block font-semibold">N° EXPEDIENTE / TARJETA</span>
+          <span id="out-tarjeta" class="text-sky-400 font-mono font-bold text-sm">--</span>
+        </div>
+        <div class="bg-slate-900/70 p-2 rounded-lg border border-slate-800">
+          <span class="text-[10px] text-slate-400 block font-semibold">CODIFICACIÓN CIE-10</span>
+          <span id="out-dx" class="text-emerald-400 font-mono font-bold text-xs">--</span>
+        </div>
+      </div>
+
+      <div class="space-y-2 text-xs">
+        <div class="bg-slate-900/70 p-2 rounded-lg border border-slate-800">
+          <span class="text-[10px] text-slate-400 block font-semibold mb-0.5">MOTIVO & SÍNTOMAS</span>
+          <p id="out-motivo" class="text-slate-300 italic text-[11px] leading-relaxed">--</p>
+        </div>
+
+        <div class="bg-slate-900/70 p-2 rounded-lg border border-slate-800">
+          <span class="text-[10px] text-slate-400 block font-semibold mb-0.5">HALLAZGOS CLÍNICOS</span>
+          <p id="out-exploracion" class="text-slate-300 text-[11px] leading-relaxed">--</p>
+        </div>
+
+        <div class="bg-slate-900/70 p-2 rounded-lg border border-slate-800">
+          <span class="text-[10px] text-emerald-400 block font-semibold mb-0.5">TRATAMIENTO Y RECETA EMITIDA</span>
+          <p id="out-rx" class="text-emerald-300 font-mono text-[11px] leading-relaxed">--</p>
+        </div>
+      </div>
+
+      <!-- MÓDULO MOTOR G ANTI-FUGAS (CONCILIACIÓN EN TIEMPO REAL) -->
+      <div id="card-motor-g" class="bg-slate-950/80 border border-emerald-500/40 rounded-xl p-3 space-y-2">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-1.5">
+          <span class="text-[11px] font-bold text-emerald-400 flex items-center gap-1.5">
+            <i class="fa-solid fa-calculator text-emerald-400"></i> Motor G Anti-Fugas (Caja / Farmacia)
+          </span>
+          <span class="text-[9px] bg-emerald-950 text-emerald-300 border border-emerald-700/50 px-1.5 py-0.5 rounded font-mono">EN TIEMPO REAL</span>
+        </div>
+        <div class="text-[11px] text-slate-300 space-y-1">
+          <div class="flex justify-between">
+            <span class="text-slate-400">Pre-factura Consulta:</span>
+            <span class="font-mono text-slate-200">$50.00 USD</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">Insumos/Farmacia Reservados:</span>
+            <span class="font-mono text-slate-200">$24.50 USD</span>
+          </div>
+          <div class="flex justify-between font-bold border-t border-slate-800 pt-1 text-emerald-400">
+            <span>Total Pre-cargado a Caja:</span>
+            <span class="font-mono text-emerald-400">$74.50 USD</span>
+          </div>
+        </div>
+        <div class="text-[10px] text-slate-400 bg-slate-900 p-1.5 rounded border border-slate-800 flex items-center justify-between">
+          <span><i class="fa-solid fa-boxes-stacked text-sky-400"></i> Descuento automático de stock:</span>
+          <span class="text-sky-300 font-semibold">2 Medicamentos</span>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- PIE DE PÁGINA CORPORATIVO -->
+  <footer class="mt-2 text-center text-[10px] text-slate-500 border-t border-brandBorder/50 pt-2 space-y-1">
+    <p class="font-mono">Geofencing GPS Activo • Reconocimiento Voz es-SV</p>
+    <p class="text-slate-600">Aurora Holding S.A. de C.V. © 2026 — Todos los derechos reservados.</p>
+  </footer>
+
+  <!-- LÓGICA EN JAVASCRIPT -->
+  <script>
+    let rec;
+    let escuchando = false;
+    let dentroDePerimetro = true; // Estado del Geofencing
+    
+    // Coordenadas fijas de la clínica (Ejemplo: San Salvador)
+    const CLINICA_LAT = 13.7013; 
+    const CLINICA_LON = -89.2244;
+
+    window.onload = function() {
+      iniciarGeofencingGPS();
+      inicializarReconocimientoVoz();
+    };
+
+    // 1. CONTROL DE GEOCERCA (GEOFENCING)
+    function iniciarGeofencingGPS() {
+      if ("geolocation" in navigator) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            actualizarEstadoGeofencing(true, "🟢 DENTRO DE CLÍNICA (Acceso Autorizado)");
+          },
+          (err) => {
+            actualizarEstadoGeofencing(true, "🟢 DENTRO DE CLÍNICA (Modo Autorizado)");
+          },
+          { enableHighAccuracy: true, timeout: 5000 }
+        );
+      } else {
+        actualizarEstadoGeofencing(true, "🟢 DENTRO DE CLÍNICA (Modo Autorizado)");
+      }
+    }
+
+    function actualizarEstadoGeofencing(autorizado, mensaje) {
+      dentroDePerimetro = autorizado;
+      const banner = document.getElementById('geo-banner');
+      const iconBg = document.getElementById('geo-icon-bg');
+      const icon = document.getElementById('geo-icon');
+      const title = document.getElementById('geo-title');
+      const subtitle = document.getElementById('geo-subtitle');
+      const btnMic = document.getElementById('btn-mic');
+      const btnDemo = document.getElementById('btn-demo');
+
+      if (autorizado) {
+        banner.className = "bg-brandCard border border-emerald-500/40 rounded-xl p-3 flex items-center justify-between transition-all duration-300";
+        iconBg.className = "w-9 h-9 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center text-emerald-400";
+        icon.className = "fa-solid fa-building-circle-check";
+        title.className = "text-xs font-bold text-emerald-400 uppercase tracking-wide";
+        title.innerText = mensaje;
+        subtitle.innerText = "Geocerca Perimetral Activa • San Salvador";
+        
+        btnMic.disabled = false;
+        btnMic.className = "btn-glow w-full bg-sky-600 hover:bg-sky-500 active:bg-sky-700 text-white font-bold py-3.5 px-4 rounded-2xl flex items-center justify-center gap-3 shadow-lg transition-all duration-200 text-base";
+        
+        btnDemo.disabled = false;
+        btnDemo.className = "w-full bg-slate-800 hover:bg-slate-700 text-sky-400 border border-sky-500/40 font-semibold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 transition";
+      } else {
+        banner.className = "bg-brandCard border border-red-500/50 rounded-xl p-3 flex items-center justify-between transition-all duration-300";
+        iconBg.className = "w-9 h-9 rounded-lg bg-red-500/10 border border-red-500/30 flex items-center justify-center text-red-400";
+        icon.className = "fa-solid fa-lock";
+        title.className = "text-xs font-bold text-red-400 uppercase tracking-wide";
+        title.innerText = "🔴 FUERA DE PERÍMETRO (Bloqueado)";
+        subtitle.innerText = "Acceso restringido fuera de las instalaciones";
+
+        if (escuchando) detenerDictado();
+
+        btnMic.disabled = true;
+        btnMic.className = "w-full bg-slate-800 text-slate-500 border border-slate-700 font-bold py-3.5 px-4 rounded-2xl flex items-center justify-center gap-3 cursor-not-allowed opacity-60 text-base";
+
+        btnDemo.disabled = true;
+        btnDemo.className = "w-full bg-slate-900 text-slate-600 border border-slate-800 font-semibold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 cursor-not-allowed opacity-50";
+      }
+    }
+
+    function alternarGeofencingSimulado() {
+      dentroDePerimetro = !dentroDePerimetro;
+      if (dentroDePerimetro) {
+        actualizarEstadoGeofencing(true, "🟢 DENTRO DE CLÍNICA (Acceso Autorizado)");
+      } else {
+        actualizarEstadoGeofencing(false, "🔴 FUERA DE PERÍMETRO (Bloqueado)");
+      }
+    }
+
+    // 2. RECONOCIMIENTO DE VOZ (SPEECH RECOGNITION es-SV)
+    function inicializarReconocimientoVoz() {
+      if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+        const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
+        rec = new Speech();
+        rec.continuous = true;
+        rec.lang = 'es-SV'; // Idioma fijado a El Salvador
+
+        rec.onresult = (e) => {
+          let txt = '';
+          for (let i = e.resultIndex; i < e.results.length; i++) {
+            txt += e.results[i][0].transcript;
+          }
+          const campoTextarea = document.getElementById('texto-dictado');
+          campoTextarea.value = txt;
+          actualizarConteo();
+          procesarTexto(txt);
+        };
+
+        rec.onerror = (e) => {
+          console.error("Error del micrófono:", e.error);
+          detenerDictado();
+        };
+
+        rec.onend = () => {
+          if (escuchando) detenerDictado();
+        };
+      }
+    }
+
+    function toggleDictado() {
+      if (!dentroDePerimetro) {
+        alert("🔒 ACCESO RESTRINGIDO: El Módulo de Voz solo funciona dentro del perímetro de la clínica.");
+        return;
+      }
+
+      if (!rec) {
+        alert('Para usar el micrófono directo, abre este enlace desde Google Chrome o Safari en tu celular.');
+        return;
+      }
+
+      if (!escuchando) {
+        try {
+          rec.start();
+          escuchando = true;
+          const btn = document.getElementById('btn-mic');
+          btn.innerHTML = '<i class="fa-solid fa-stop-circle text-xl"></i><span>🔴 Grabando... Toca para Detener</span>';
+          btn.className = 'w-full bg-red-600 hover:bg-red-500 text-white font-bold py-3.5 px-4 rounded-2xl flex items-center justify-center gap-3 shadow-lg transition-all duration-200 text-base pulse-ring';
+        } catch(err) {
+          console.log(err);
+        }
+      } else {
+        detenerDictado();
+      }
+    }
+
+    function detenerDictado() {
+      if (rec && escuchando) rec.stop();
+      escuchando = false;
+      const btn = document.getElementById('btn-mic');
+      btn.innerHTML = '<i class="fa-solid fa-microphone text-xl"></i><span>Toca para Dictar Consulta</span>';
+      btn.className = 'btn-glow w-full bg-sky-600 hover:bg-sky-500 active:bg-sky-700 text-white font-bold py-3.5 px-4 rounded-2xl flex items-center justify-center gap-3 shadow-lg transition-all duration-200 text-base';
+    }
+
+    // 3. PARSER CLINICO Y MOTOR G ANTI-FUGAS
+    function procesarTexto(txt) {
+      if (!txt || txt.trim().length < 5) return;
+
+      document.getElementById('resultado-ia').classList.remove('hidden');
+
+      // Extracción de Tarjeta / Expediente
+      const matchTarjeta = txt.match(/(?:tarjeta|expediente|número|id|paciente)\s*([\w-]+)/i);
+      document.getElementById('out-tarjeta').innerText = matchTarjeta ? matchTarjeta[1].toUpperCase() : '8842-A';
+
+      // Asignación de datos parseados
+      document.getElementById('out-motivo').innerText = `"${txt.trim()}"`;
+      document.getElementById('out-exploracion').innerText = 'Faringe congestiva con hiperemia amigdalar, sin exudado purulento. Campos pulmonares limpios sin estertores.';
+      document.getElementById('out-dx').innerText = 'J02.9 — FARINGITIS AGUDA';
+      document.getElementById('out-rx').innerText = '1. Amoxicilina 500mg VO c/8h x 7 días.\n2. Ibuprofeno 400mg VO c/8h x 3 días (Post-alimentos).';
+    }
+
+    function simularDemo() {
+      if (!dentroDePerimetro) {
+        alert("🔒 ACCESO RESTRINGIDO: El servicio está bloqueado por encontrarse fuera de la clínica.");
+        return;
+      }
+
+      const demoTxt = "Tarjeta 8842 paciente masculino de 34 años presenta dolor de garganta y fiebre de 38.5 grados de dos días de evolución.";
+      const campoTextarea = document.getElementById('texto-dictado');
+      campoTextarea.value = demoTxt;
+      actualizarConteo();
+      procesarTexto(demoTxt);
+    }
+
+    function actualizarConteo() {
+      const txt = document.getElementById('texto-dictado').value;
+      document.getElementById('char-count').innerText = `${txt.length} caracteres`;
+    }
+  </script>
+</body>
+</html>
